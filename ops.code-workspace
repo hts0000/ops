@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "ops-backend"
+		},
+		{
+			"path": "ops-frontend"
+		}
+	]
+}

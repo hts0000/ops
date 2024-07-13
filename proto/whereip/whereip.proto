@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package whereip;
 
-import "google/api/annotations.proto";
-
 option go_package = "ops-backend/whereip/api/gen/v1;whereippb";
 
 service WhereipService {
@@ -19,6 +17,12 @@ message GetIpResponse {
     Ip ip = 1;
 }
 
-message Ip {
+message Ip {}
 
+message GetIpsRequest {
+    repeated string ips = 1;
+}
+
+message GetIpsResponse {
+    repeated Ip ips = 1;
 }
