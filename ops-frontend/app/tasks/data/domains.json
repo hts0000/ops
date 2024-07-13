@@ -1,0 +1,112 @@
+[
+  {
+    "id": "1",
+    "type": "A",
+    "domain": "www.example.com",
+    "record": "192.168.100.100",
+    "status": 1,
+    "isp": "电信",
+    "ip": "192.168.200.200",
+    "city": "广州",
+    "expire_at": "2025-07-01 10:00:00"
+  },
+  {
+    "id": "2",
+    "type": "CNAME",
+    "domain": "www.example.com",
+    "record": "eos.miniso.com.w.kunluncan.com",
+    "status": 1,
+    "isp": "阿里云",
+    "ip": "192.168.200.200",
+    "city": "广州",
+    "expire_at": "2024-08-01 10:00:00"
+  },
+  {
+    "id": "3",
+    "type": "CNAME",
+    "domain": "www.example.com",
+    "record": "eos.miniso.com.w.kunluncan.co",
+    "status": 1,
+    "isp": "阿里云",
+    "ip": "192.168.200.200",
+    "city": "广州",
+    "expire_at": "2025-07-01 10:00:00"
+  },
+  {
+    "id": "4",
+    "type": "A",
+    "domain": "www.example.com",
+    "record": "192.168.100.100",
+    "status": 0,
+    "isp": "阿里云",
+    "ip": "192.168.200.200",
+    "city": "广州",
+    "expire_at": "2025-07-01 10:00:00"
+  },
+  {
+    "id": "5",
+    "type": "A",
+    "domain": "www.example.com",
+    "record": "192.168.100.100",
+    "status": 0,
+    "isp": "电阿里云",
+    "ip": "192.168.200.200",
+    "city": "广州",
+    "expire_at": "2025-07-01 10:00:00"
+  },
+  {
+    "id": "6",
+    "type": "A",
+    "domain": "www.example.com",
+    "record": "192.168.100.100",
+    "status": 1,
+    "isp": "腾讯云",
+    "ip": "192.168.200.200",
+    "city": "广州",
+    "expire_at": "2025-07-01 10:00:00"
+  },
+  {
+    "id": "7",
+    "type": "A",
+    "domain": "www.example.com",
+    "record": "192.168.100.100",
+    "status": 1,
+    "isp": "电信",
+    "ip": "192.168.200.200",
+    "city": "广州",
+    "expire_at": "2025-07-01 10:00:00"
+  },
+  {
+    "id": "8",
+    "type": "CNAME",
+    "domain": "www.example.com",
+    "record": "eos.miniso.com.w.kunluncan.co",
+    "status": 1,
+    "isp": "阿里云",
+    "ip": "192.168.200.200",
+    "city": "广州",
+    "expire_at": "2025-07-01 10:00:00"
+  },
+  {
+    "id": "9",
+    "type": "CNAME",
+    "domain": "www.example.com",
+    "record": "eos.miniso.com.w.kunluncan.co",
+    "status": 1,
+    "isp": "阿里云",
+    "ip": "192.168.200.200",
+    "city": "广州",
+    "expire_at": "2025-07-01 10:00:00"
+  },
+  {
+    "id": "10",
+    "type": "A",
+    "domain": "www.example.com",
+    "record": "192.168.100.100",
+    "status": 1,
+    "isp": "腾讯云",
+    "ip": "192.168.200.200",
+    "city": "广州",
+    "expire_at": "2025-07-01 10:00:00"
+  }
+]

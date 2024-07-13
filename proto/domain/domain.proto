@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package domain.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "ops-backend/domain/api/gen/v1;domainpb";
+
+service DomainService {
+    rpc GetDomains (GetDomainsRequest) returns (GetDomainsResponse) {
+        option (google.api.http) = {
+            get: "/v1/domains"
+        };
+    };
+}
+
+message GetDomainsRequest {
+    string domain_name = 1;
+    int64 page = 2;
+    int64 page_size = 3;
+}
+
+message GetDomainsResponse {
+    uint64 total = 1; 
+    uint64 page = 2;
+    uint64 page_size = 3;
+    repeated DomainRecord domain_record = 4;
+}
+
+message DomainRecord {
+    // 主机记录
+    string rr = 1;
+    // 当前的解析记录状态
+    Status status = 2;
+    // 记录类型
+    Type type = 3;
+    // 缓存时间设置
+    int64 ttl_sec = 4;
+    // 记录值
+    string value = 5;
+    // 解析线路
+    string line = 6;
+    // 备注
+    string remark = 7;
+    // 过期时间
+    int64 expire_at = 8;
+    // 所在城市
+    string city = 9;
+}
+
+enum Status {
+    ACTIVE = 0;
+    INACTIVE = 1;
+}
+
+enum Type {
+    A = 0;
+    CNAME = 1;
+    MX = 2;
+    TXT = 3;
+    NS = 4;
+    AAAA = 5;
+    SRV = 6;
+    PTR = 7;
+    SOA = 8;
+    SPF = 9;
+    URL = 10;
+    FORWARD = 11;
+    REDIRECT = 12;
+    FRAME = 13;
+    RECORD = 14;
+    OTHER = 15;
+}
