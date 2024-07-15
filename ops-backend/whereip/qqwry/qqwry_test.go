@@ -5,9 +5,9 @@ import (
 )
 
 func TestGetDBFile(t *testing.T) {
-	getDBFile()
+	GetDBFile()
 }
 
 func TestParseDBFile(t *testing.T) {
-	parseDBFile()
+	ParseDBFile()
 }
