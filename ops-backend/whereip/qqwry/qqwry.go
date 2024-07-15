@@ -93,7 +93,7 @@ func ParseDBFile() {
 		panic(err)
 	}
 
-	// i, cnt := 0, 100
+	fmt.Printf("first index: %v, last index: %v, db version: %v\n", db.FirstIndex(), db.LastIndex(), db.Version())
 	for ; db.HasNextIndex(); db.NextIndex() {
 		beginIP, endIP := db.CurrnetIPRange()
 		fmt.Printf("currnet index: %v, begin ip: %v, end ip: %v, mod: %v, offset: %v, part1: %v, part2: %v\n",

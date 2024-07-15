@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"net"
+	"strings"
 )
 
 type MODE byte
@@ -47,6 +48,9 @@ func NewDBReader(data []byte, decoder Decoder) (*DBReader, error) {
 		decoder:  decoder,
 	}
 
+	// +4 跳过begin ip
+	r.version = r.ReadPart1(r.ReadOffset(lastIdx+4)) + r.ReadPart2(r.ReadOffset(lastIdx+4))
+
 	return r, nil
 }
 
@@ -56,6 +60,10 @@ func (r *DBReader) FirstIndex() uint32 {
 
 func (r *DBReader) LastIndex() uint32 {
 	return r.lastIdx
+}
+
+func (r *DBReader) Version() string {
+	return r.version
 }
 
 // 获取游标所在索引的绝对定位
@@ -82,9 +90,43 @@ func (r *DBReader) CurrnetIPRange() (beginIP net.IP, endIP net.IP) {
 
 // 获取游标所在索引的第1部分记录
 func (r *DBReader) CurrnetPart1() string {
+	pos := r.CurrentOffset()
+	return r.ReadPart1(pos)
+}
+
+// 获取游标所在索引的第2部分记录
+func (r *DBReader) CurrentPart2() string {
+	pos := r.CurrentOffset()
+	return r.ReadPart2(pos)
+}
+
+func (r *DBReader) HasNextIndex() bool {
+	return r.cursor <= r.lastIdx
+}
+
+func (r *DBReader) NextIndex() uint32 {
+	v := r.cursor
+	r.cursor += 7
+	return v
+}
+
+func (r *DBReader) ReadMode(pos uint32) MODE {
+	return MODE(r.data[pos])
+}
+
+func (r *DBReader) ReadOffset(pos uint32) uint32 {
+	return uint32(r.data[pos]) | uint32(r.data[pos+1])<<8 | uint32(r.data[pos+2])<<16
+}
+
+func (r *DBReader) ReadIP(pos uint32) net.IP {
+	b := r.data[pos : pos+4]
+	return net.IPv4(b[3], b[2], b[1], b[0])
+}
+
+func (r *DBReader) ReadPart1(pos uint32) string {
 	// +4 跳过end ip
-	pos := r.CurrentOffset() + 4
-	mod := r.CurrentMode()
+	pos += 4
+	mod := r.ReadMode(pos)
 	for mod == R_MODE1 || mod == R_MODE2 {
 		// +1 跳过mode
 		pos = r.ReadOffset(pos + 1)
@@ -100,14 +142,13 @@ func (r *DBReader) CurrnetPart1() string {
 		return ""
 	}
 
-	return part1
+	return strings.Trim(part1, " ")
 }
 
-// 获取游标所在索引的第2部分记录
-func (r *DBReader) CurrentPart2() string {
+func (r *DBReader) ReadPart2(pos uint32) string {
 	// +4 跳过end ip
-	pos := r.CurrentOffset() + 4
-	mod := r.CurrentMode()
+	pos += 4
+	mod := r.ReadMode(pos)
 	for mod == R_MODE1 {
 		// +1 跳过mode
 		pos = r.ReadOffset(pos + 1)
@@ -146,30 +187,7 @@ func (r *DBReader) CurrentPart2() string {
 		return ""
 	}
 
-	return part2
-}
-
-func (r *DBReader) HasNextIndex() bool {
-	return r.cursor <= r.lastIdx
-}
-
-func (r *DBReader) NextIndex() uint32 {
-	v := r.cursor
-	r.cursor += 7
-	return v
-}
-
-func (r *DBReader) ReadMode(position uint32) MODE {
-	return MODE(r.data[position])
-}
-
-func (r *DBReader) ReadOffset(position uint32) uint32 {
-	return uint32(r.data[position]) | uint32(r.data[position+1])<<8 | uint32(r.data[position+2])<<16
-}
-
-func (r *DBReader) ReadIP(position uint32) net.IP {
-	b := r.data[position : position+4]
-	return net.IPv4(b[3], b[2], b[1], b[0])
+	return strings.Trim(part2, " ")
 }
 
 func (r *DBReader) ResetCursor() {
