@@ -72,6 +72,10 @@ const (
 	R_MODE2 MODE = 0x02
 )
 
+type Decoder interface {
+	String(string) (string, error)
+}
+
 type DBReader struct {
 	data []byte // db file data
 
@@ -82,9 +86,11 @@ type DBReader struct {
 	cursor uint32 // index cursor
 
 	version uint32
+
+	decoder Decoder
 }
 
-func NewDBReader(data []byte) *DBReader {
+func NewDBReader(data []byte, decoder Decoder) *DBReader {
 	if !IsDBData(data) {
 		return nil
 	}
@@ -96,6 +102,7 @@ func NewDBReader(data []byte) *DBReader {
 		firstIdx: firstIdx,
 		lastIdx:  lastIdx,
 		cursor:   firstIdx,
+		decoder:  decoder,
 	}
 }
 
@@ -107,13 +114,81 @@ func (r *DBReader) LastIndex() uint32 {
 	return r.lastIdx
 }
 
+// 获取游标所在索引的绝对定位
 func (r *DBReader) CurrentIndex() uint32 {
 	return r.cursor
 }
 
+// 获取游标所在索引的偏移量
 func (r *DBReader) CurrentOffset() uint32 {
-	// 把当前游标所在索引的后3字节偏移量读取出来
+	// +4 跳过begin ip
 	return r.ReadOffset(r.cursor + 4)
+}
+
+// 获取游标所在索引的记录模式
+func (r *DBReader) CurrentMode() MODE {
+	// +4 跳过end ip
+	return r.ReadMode(r.CurrentOffset() + 4)
+}
+
+func (r *DBReader) CurrnetIPRange() (net.IP, net.IP) {
+	return r.ReadIP(r.cursor), r.ReadIP(r.CurrentOffset())
+}
+
+// 获取游标所在索引的第1部分记录
+func (r *DBReader) CurrnetPart1() string {
+	// +4 跳过end ip
+	pos := r.CurrentOffset() + 4
+	mod := r.CurrentMode()
+	for mod == R_MODE1 || mod == R_MODE2 {
+		// +1 跳过mode
+		pos = r.ReadOffset(pos + 1)
+		mod = r.ReadMode(pos)
+	}
+	// 获取第1部分记录，读取到0为止
+	i := bytes.IndexByte(r.data[pos:], 0)
+	part1 := string(r.data[pos : pos+uint32(i)])
+
+	// 转换成GBK编码
+	part1, err := r.decoder.String(part1)
+	if err != nil {
+		return ""
+	}
+
+	return part1
+}
+
+// 获取游标所在索引的第2部分记录
+func (r *DBReader) CurrentPart2() string {
+	// +4 跳过end ip
+	pos := r.CurrentOffset() + 4
+	mod := r.CurrentMode()
+	for mod == R_MODE1 {
+		// +1 跳过mode
+		pos = r.ReadOffset(pos + 1)
+		mod = r.ReadMode(pos)
+	}
+	if mod == R_MODE2 {
+		// +1 跳过mode
+		// +3 跳过part1的offset
+		pos = pos + 1 + 3
+	} else {
+		// 跳过第1部分记录
+		// +1 跳过结束符0
+		pos = pos + uint32(bytes.IndexByte(r.data[pos:], 0)+1)
+	}
+
+	// 获取第2部分记录，读取到0为止
+	i := bytes.IndexByte(r.data[pos:], 0)
+	part2 := string(r.data[pos : pos+uint32(i)])
+
+	// 转换成GBK编码
+	part2, err := r.decoder.String(part2)
+	if err != nil {
+		return ""
+	}
+
+	return part2
 }
 
 func (r *DBReader) HasNextIndex() bool {
@@ -137,6 +212,10 @@ func (r *DBReader) ReadOffset(position uint32) uint32 {
 func (r *DBReader) ReadIP(position uint32) net.IP {
 	b := r.data[position : position+4]
 	return net.IPv4(b[3], b[2], b[1], b[0])
+}
+
+func (r *DBReader) ResetCursor() {
+	r.cursor = r.firstIdx
 }
 
 func parseDBFile() {
@@ -164,12 +243,15 @@ func parseDBFile() {
 
 	fmt.Printf("data size: %v\n", len(data))
 
-	db := NewDBReader(data)
-	for ; db.HasNextIndex(); db.NextIndex() {
-		beginIP := db.ReadIP(db.CurrentIndex())
-		endIP := db.ReadIP(db.CurrentOffset())
-		fmt.Printf("currnet index: %v, begin ip: %v, end ip: %v, mod: %v, offset: %v\n", db.CurrentIndex(), beginIP, endIP, db.ReadMode(), offset)
+	j, c := 0, 10
+	decoder := simplifiedchinese.GBK.NewDecoder()
+	db := NewDBReader(data, decoder)
+	for ; db.HasNextIndex() && j < c; db.NextIndex() {
+		beginIP, endIP := db.CurrnetIPRange()
+		fmt.Printf("currnet index: %v, begin ip: %v, end ip: %v, mod: %v, offset: %v, part1: %v, part2: %v\n",
+			db.CurrentIndex(), beginIP, endIP, db.CurrentMode(), db.CurrentOffset(), db.CurrnetPart1(), db.CurrentPart2())
 
+		j++
 	}
 
 	first := binary.LittleEndian.Uint32(data[:4])
@@ -196,7 +278,6 @@ func parseDBFile() {
 		return countryIndex, cityIndex
 	}
 
-	decoder := simplifiedchinese.GBK.NewDecoder()
 	i, cnt := 0, 10
 	for first <= last && i < cnt {
 		index := data[first : first+7]
