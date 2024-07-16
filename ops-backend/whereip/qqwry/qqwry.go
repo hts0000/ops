@@ -3,6 +3,7 @@ package qqwry
 import (
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -94,6 +95,29 @@ func ParseDBFile() {
 	}
 
 	fmt.Printf("first index: %v, last index: %v, db version: %v\n", db.FirstIndex(), db.LastIndex(), db.Version())
+
+	cases := []struct {
+		name string
+		ip   net.IP
+	}{
+		{
+			name: "normal case",
+			ip:   net.IPv4(71, 91, 219, 120),
+		},
+		{
+			name: "last index",
+			ip:   net.IPv4(255, 255, 255, 100),
+		},
+		{
+			name: "first index",
+			ip:   net.IPv4(0, 0, 0, 1),
+		},
+	}
+
+	for _, cc := range cases {
+		fmt.Printf("case: %v, ip: %v, record: %v\n", cc.name, cc.ip, db.FindRecord(cc.ip))
+	}
+
 	for ; db.HasNextIndex(); db.NextIndex() {
 		beginIP, endIP := db.CurrnetIPRange()
 		fmt.Printf("currnet index: %v, begin ip: %v, end ip: %v, mod: %v, offset: %v, part1: %v, part2: %v\n",

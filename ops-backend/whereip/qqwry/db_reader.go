@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"net"
 	"strings"
 )
@@ -188,6 +189,41 @@ func (r *DBReader) ReadPart2(pos uint32) string {
 	}
 
 	return strings.Trim(part2, " ")
+}
+
+func (r *DBReader) FindRecord(ip net.IP) string {
+	start, end := r.FirstIndex(), r.LastIndex()
+	target := binary.LittleEndian.Uint32(ip[12:])
+
+	idxLen := uint32(4 + 3)
+
+	// 在索引区寻找最后一个小于等于target的位置，返回索引位置
+	search := func(start, end, target uint32) uint32 {
+		for start+idxLen <= end {
+			// 找到[start:end]中间的那条index
+			mid := (end-start)/idxLen/2*idxLen + start
+
+			// 读取中间index的ip，将其转换成uint32
+			ip := r.ReadIP(mid)
+			ipc := binary.BigEndian.Uint32(ip[12:])
+
+			if ipc > target {
+				end = mid - idxLen
+			} else {
+				start = mid + idxLen
+			}
+		}
+		return start
+	}
+
+	targetIdx := search(start, end, target)
+	if targetIdx >= r.LastIndex() {
+		fmt.Printf("cannot find ip: %v record\n", ip)
+		return ""
+	}
+
+	pos := r.ReadOffset(targetIdx + 4)
+	return r.ReadPart1(pos) + r.ReadPart2(pos)
 }
 
 func (r *DBReader) ResetCursor() {
