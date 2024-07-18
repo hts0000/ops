@@ -46,6 +46,10 @@ message DomainRecord {
     int64 expire_at = 8;
     // 所在城市
     string city = 9;
+    // 运营商
+    string isp = 10;
+    // 真实ip
+    string real_ip = 11;
 }
 
 enum Status {

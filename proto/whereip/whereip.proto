@@ -14,15 +14,24 @@ message GetIpRequest {
 }
 
 message GetIpResponse {
-    Ip ip = 1;
+    Record record = 1;
 }
-
-message Ip {}
 
 message GetIpsRequest {
     repeated string ips = 1;
 }
 
 message GetIpsResponse {
-    repeated Ip ips = 1;
+    repeated Record records = 1;
+}
+
+message Record {
+    // 真实ip
+    string real_ip = 1;
+    // 运营商
+    string isp = 2;
+    // 所在城市
+    string city = 3;
+    // 过期时间
+    int64 expire_at = 4;
 }
