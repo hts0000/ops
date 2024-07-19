@@ -2,11 +2,19 @@ syntax = "proto3";
 
 package whereip;
 
+import "google/api/annotations.proto";
+
 option go_package = "ops-backend/whereip/api/gen/v1;whereippb";
 
 service WhereipService {
     rpc GetIp (GetIpRequest) returns (GetIpResponse);
     rpc GetIps (GetIpsRequest) returns (GetIpsResponse);
+
+    rpc RefreshIps (RefreshIpsRequest) returns (RefreshIpsResponse) {
+        option (google.api.http) = {
+            get: "/v1/whereip/refresh"
+        };
+    };
 }
 
 message GetIpRequest {
@@ -35,3 +43,7 @@ message Record {
     // 过期时间
     int64 expire_at = 4;
 }
+
+message RefreshIpsRequest {}
+
+message RefreshIpsResponse {}
